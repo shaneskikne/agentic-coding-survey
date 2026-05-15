@@ -1,23 +1,67 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #fafaf7;
-  --color-foreground: #18181b;
-  --color-ink: #18181b;
-  --color-muted: #71717a;
-  --color-line: #e4e4e0;
-  --color-accent: #0a0a0a;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-canvas: #F4F8FD;
+  --color-canvas-deep: #EBF2FB;
+  --color-surface: #FFFFFF;
+  --color-ink: #0F1B30;
+  --color-ink-soft: #324766;
+  --color-ink-mute: #6B7E9C;
+  --color-ink-light: #93A4BF;
+  --color-line: #DCE5F2;
+  --color-line-soft: #ECF1F8;
+  --color-accent: #1F5AE0;
+  --color-accent-deep: #1647B8;
+  --color-accent-soft: #E3EDFC;
+  --color-accent-tint: #F2F7FE;
+  --color-success: #1F7A55;
+  --color-success-soft: #E5F2EC;
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
 }
 
-html, body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+html,
+body {
+  background:
+    radial-gradient(
+      1200px 600px at 50% -10%,
+      #DDE9FA 0%,
+      transparent 60%
+    ),
+    var(--color-canvas);
+  color: var(--color-ink);
 }
 
 body {
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+.font-serif {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+}
+
+/* Page-load reveal */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  animation: rise 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Focus ring tuned for blue palette */
+.focus-ring:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--color-accent-soft),
+    0 0 0 4px var(--color-accent);
 }

@@ -2,38 +2,19 @@
 
 import { FormEvent, useState } from "react";
 
-const ROLES = [
-  "Engineer",
-  "PM",
-  "Designer",
-  "Leadership",
-  "Student",
-  "Other",
-] as const;
-
-const EXPERIENCE = ["None", "Some", "Regular user"] as const;
-const PACE = ["Too slow", "Just right", "Too fast"] as const;
 const SCALE = [1, 2, 3, 4, 5] as const;
 
 type FormState = {
-  role: string;
-  experience: string;
   rating: number | null;
-  pace: string;
-  mostValuable: string;
-  improvements: string;
-  likelihood: number | null;
+  enjoyed: string;
+  improved: string;
   other: string;
 };
 
 const INITIAL: FormState = {
-  role: "",
-  experience: "",
   rating: null,
-  pace: "",
-  mostValuable: "",
-  improvements: "",
-  likelihood: null,
+  enjoyed: "",
+  improved: "",
   other: "",
 };
 
@@ -44,8 +25,7 @@ export function SurveyForm() {
   >("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const isValid =
-    form.role !== "" && form.experience !== "" && form.rating !== null;
+  const isValid = form.rating !== null;
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -64,14 +44,10 @@ export function SurveyForm() {
           access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
           subject: "Agentic coding session — survey response",
           from_name: "Agentic Coding Survey",
-          role: form.role,
-          experience: form.experience,
           rating: form.rating,
-          pace: form.pace || "(not answered)",
-          most_valuable: form.mostValuable || "(not answered)",
-          improvements: form.improvements || "(not answered)",
-          likelihood: form.likelihood ?? "(not answered)",
-          other: form.other || "(not answered)",
+          enjoyed: form.enjoyed.trim() || "(not answered)",
+          could_be_better: form.improved.trim() || "(not answered)",
+          other_thoughts: form.other.trim() || "(not answered)",
         }),
       });
 
@@ -92,22 +68,26 @@ export function SurveyForm() {
 
   if (status === "success") {
     return (
-      <div className="rounded-lg border border-zinc-200 bg-white p-8 sm:p-10">
-        <div className="mb-4 text-xs uppercase tracking-[0.18em] text-emerald-700">
-          Submitted
+      <div className="rise rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-9 shadow-[0_1px_2px_rgba(15,27,48,0.04),0_24px_48px_-24px_rgba(31,90,224,0.18)] sm:p-12">
+        <div className="mb-5 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--color-accent-deep)]">
+          <span
+            aria-hidden
+            className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]"
+          />
+          Received
         </div>
-        <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">
-          Thanks — your feedback&apos;s on its way.
+        <h2 className="font-serif text-[34px] leading-[1.1] tracking-tight text-[var(--color-ink)] sm:text-[40px]">
+          Thank you.
         </h2>
-        <p className="mt-3 text-base leading-relaxed text-zinc-600">
-          The organizer will read every response. Close this tab, or{" "}
+        <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[var(--color-ink-soft)]">
+          Your reflection is on its way to the organizer. Close this tab, or{" "}
           <button
             type="button"
             onClick={() => {
               setForm(INITIAL);
               setStatus("idle");
             }}
-            className="underline underline-offset-2 hover:text-zinc-900"
+            className="font-medium text-[var(--color-accent)] underline decoration-[var(--color-accent-soft)] decoration-2 underline-offset-4 transition hover:decoration-[var(--color-accent)]"
           >
             submit another response
           </button>
@@ -120,113 +100,75 @@ export function SurveyForm() {
   const submitting = status === "submitting";
 
   return (
-    <form onSubmit={onSubmit} className="space-y-12">
-      <Question
-        number={1}
-        label="Your role"
-        required
-      >
-        <RadioGroup
-          name="role"
-          options={ROLES}
-          value={form.role}
-          onChange={(v) => setForm({ ...form, role: v })}
-        />
-      </Question>
-
-      <Question
-        number={2}
-        label="Prior experience with agentic coding tools"
-        required
-      >
-        <RadioGroup
-          name="experience"
-          options={EXPERIENCE}
-          value={form.experience}
-          onChange={(v) => setForm({ ...form, experience: v })}
-        />
-      </Question>
-
-      <Question
-        number={3}
-        label="Overall session rating"
-        required
-        helper="1 = poor, 5 = excellent"
-      >
+    <form onSubmit={onSubmit} className="space-y-7 sm:space-y-9">
+      <Card index={1} label="Rate your experience" required>
         <Scale
           value={form.rating}
           onChange={(v) => setForm({ ...form, rating: v })}
-          lowLabel="Poor"
-          highLabel="Excellent"
+          lowLabel="Not for me"
+          highLabel="Loved it"
         />
-      </Question>
+      </Card>
 
-      <Question number={4} label="Pace was">
-        <RadioGroup
-          name="pace"
-          options={PACE}
-          value={form.pace}
-          onChange={(v) => setForm({ ...form, pace: v })}
+      <Card index={2} label="What's one thing you really enjoyed?">
+        <TextArea
+          value={form.enjoyed}
+          onChange={(v) => setForm({ ...form, enjoyed: v })}
+          placeholder="A moment, an idea, a tool — whatever stuck."
+          rows={3}
         />
-      </Question>
+      </Card>
 
-      <Question number={5} label="Most valuable part">
-        <TextInput
-          value={form.mostValuable}
-          onChange={(v) => setForm({ ...form, mostValuable: v })}
-          placeholder="What stuck with you?"
+      <Card index={3} label="What's one thing that could have been better?">
+        <TextArea
+          value={form.improved}
+          onChange={(v) => setForm({ ...form, improved: v })}
+          placeholder="Be candid — friction, pacing, gaps."
+          rows={3}
         />
-      </Question>
+      </Card>
 
-      <Question number={6} label="What was unclear or could improve">
-        <TextInput
-          value={form.improvements}
-          onChange={(v) => setForm({ ...form, improvements: v })}
-          placeholder="Anything that fell flat or felt rushed"
-        />
-      </Question>
-
-      <Question
-        number={7}
-        label="Likelihood to use agentic coding in your work"
-        helper="1 = unlikely, 5 = very likely"
-      >
-        <Scale
-          value={form.likelihood}
-          onChange={(v) => setForm({ ...form, likelihood: v })}
-          lowLabel="Unlikely"
-          highLabel="Very likely"
-        />
-      </Question>
-
-      <Question number={8} label="Anything else?">
+      <Card index={4} label="Any other thoughts?">
         <TextArea
           value={form.other}
           onChange={(v) => setForm({ ...form, other: v })}
-          placeholder="Open mic — share whatever you&apos;d like."
+          placeholder="Optional. The floor is yours."
+          rows={4}
         />
-      </Question>
+      </Card>
 
       {status === "error" && (
         <div
           role="alert"
-          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900"
         >
           {errorMsg}
         </div>
       )}
 
-      <div className="pt-2">
+      <div className="rise pt-2" style={{ animationDelay: "200ms" }}>
         <button
           type="submit"
           disabled={!isValid || submitting}
-          className="w-full rounded-md bg-zinc-900 px-5 py-3.5 text-base font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+          className="group relative w-full overflow-hidden rounded-xl bg-[var(--color-accent)] px-6 py-4 text-[15px] font-medium tracking-tight text-white shadow-[0_1px_0_rgba(255,255,255,0.18)_inset,0_8px_24px_-8px_rgba(31,90,224,0.55)] transition-all hover:bg-[var(--color-accent-deep)] hover:shadow-[0_1px_0_rgba(255,255,255,0.18)_inset,0_12px_32px_-8px_rgba(31,90,224,0.7)] active:translate-y-[1px] disabled:cursor-not-allowed disabled:bg-[var(--color-ink-light)] disabled:shadow-none"
         >
-          {submitting ? "Sending…" : "Submit feedback"}
+          <span className="relative z-10 inline-flex items-center justify-center gap-2">
+            {submitting ? (
+              <>
+                <Spinner />
+                Sending
+              </>
+            ) : (
+              <>
+                Send reflection
+                <Arrow />
+              </>
+            )}
+          </span>
         </button>
         {!isValid && (
-          <p className="mt-3 text-xs text-zinc-500">
-            Answer questions 1, 2, and 3 to submit.
+          <p className="mt-3 text-center text-[12px] text-[var(--color-ink-mute)]">
+            Pick a rating to send.
           </p>
         )}
       </div>
@@ -234,87 +176,41 @@ export function SurveyForm() {
   );
 }
 
-function Question({
-  number,
+function Card({
+  index,
   label,
   required,
-  helper,
   children,
 }: {
-  number: number;
+  index: number;
   label: string;
   required?: boolean;
-  helper?: string;
   children: React.ReactNode;
 }) {
   return (
-    <fieldset>
-      <div className="mb-4 flex items-baseline gap-3">
-        <span className="text-xs font-mono tabular-nums text-zinc-400">
-          {String(number).padStart(2, "0")}
+    <fieldset
+      className="rise rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-6 shadow-[0_1px_2px_rgba(15,27,48,0.03)] transition-shadow focus-within:shadow-[0_1px_2px_rgba(15,27,48,0.03),0_12px_32px_-16px_rgba(31,90,224,0.25)] sm:p-7"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      <div className="mb-5 flex items-baseline gap-3">
+        <span className="font-serif text-[15px] italic text-[var(--color-accent)]">
+          {String(index).padStart(2, "0")}
         </span>
-        <legend className="text-base font-medium text-zinc-900">
+        <legend className="text-[15px] font-medium leading-snug text-[var(--color-ink)] sm:text-[16px]">
           {label}
           {required && (
-            <span aria-hidden className="ml-1 text-zinc-400">
+            <span
+              aria-hidden
+              className="ml-1 text-[var(--color-accent)]"
+              title="Required"
+            >
               *
             </span>
           )}
         </legend>
       </div>
-      {helper && (
-        <p className="mb-3 pl-8 text-xs text-zinc-500">{helper}</p>
-      )}
-      <div className="pl-8">{children}</div>
+      {children}
     </fieldset>
-  );
-}
-
-function RadioGroup({
-  name,
-  options,
-  value,
-  onChange,
-}: {
-  name: string;
-  options: readonly string[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {options.map((opt) => {
-        const selected = value === opt;
-        return (
-          <label
-            key={opt}
-            className={[
-              "flex cursor-pointer items-center gap-3 rounded-md border px-4 py-3 text-sm transition",
-              selected
-                ? "border-zinc-900 bg-zinc-900 text-white"
-                : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-400",
-            ].join(" ")}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={opt}
-              checked={selected}
-              onChange={() => onChange(opt)}
-              className="sr-only"
-            />
-            <span
-              aria-hidden
-              className={[
-                "h-3.5 w-3.5 rounded-full border-2",
-                selected ? "border-white" : "border-zinc-300",
-              ].join(" ")}
-            />
-            {opt}
-          </label>
-        );
-      })}
-    </div>
   );
 }
 
@@ -331,7 +227,7 @@ function Scale({
 }) {
   return (
     <div>
-      <div className="flex gap-2">
+      <div className="grid grid-cols-5 gap-2 sm:gap-3">
         {SCALE.map((n) => {
           const selected = value === n;
           return (
@@ -339,21 +235,21 @@ function Scale({
               key={n}
               type="button"
               onClick={() => onChange(n)}
-              className={[
-                "flex-1 rounded-md border py-3 text-sm font-medium tabular-nums transition",
-                selected
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-400",
-              ].join(" ")}
               aria-pressed={selected}
-              aria-label={`${n} out of 5`}
+              aria-label={`Rate ${n} out of 5`}
+              className={[
+                "focus-ring relative h-14 rounded-xl border text-[17px] font-medium tabular-nums transition-all sm:h-16 sm:text-[18px]",
+                selected
+                  ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white shadow-[0_8px_20px_-8px_rgba(31,90,224,0.55)]"
+                  : "border-[var(--color-line)] bg-white text-[var(--color-ink-soft)] hover:-translate-y-px hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-tint)] hover:text-[var(--color-accent-deep)]",
+              ].join(" ")}
             >
               {n}
             </button>
           );
         })}
       </div>
-      <div className="mt-2 flex justify-between text-xs text-zinc-500">
+      <div className="mt-3 flex justify-between text-[12px] text-[var(--color-ink-mute)]">
         <span>{lowLabel}</span>
         <span>{highLabel}</span>
       </div>
@@ -361,42 +257,73 @@ function Scale({
   );
 }
 
-function TextInput({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
-    />
-  );
-}
-
 function TextArea({
   value,
   onChange,
   placeholder,
+  rows,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  rows?: number;
 }) {
   return (
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      rows={4}
-      className="w-full resize-y rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+      rows={rows ?? 3}
+      className="focus-ring w-full resize-y rounded-xl border border-[var(--color-line)] bg-[var(--color-canvas-deep)]/40 px-4 py-3 text-[15px] leading-relaxed text-[var(--color-ink)] placeholder:text-[var(--color-ink-light)] transition-colors hover:border-[var(--color-ink-light)] focus:border-[var(--color-accent)] focus:bg-white"
     />
+  );
+}
+
+function Spinner() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden
+      className="animate-spin"
+    >
+      <circle
+        cx="8"
+        cy="8"
+        r="6"
+        stroke="currentColor"
+        strokeOpacity="0.3"
+        strokeWidth="2"
+      />
+      <path
+        d="M14 8a6 6 0 0 0-6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      fill="none"
+      aria-hidden
+      className="transition-transform group-hover:translate-x-0.5"
+    >
+      <path
+        d="M2 7h10M8 3l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
